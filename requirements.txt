@@ -1,0 +1,57 @@
+# Nigerian ALPR System - Python Dependencies
+# Automatic License Plate Recognition System
+# Python 3.9+
+
+# Core Scientific Computing
+numpy>=1.24.0,<2.0.0
+scipy>=1.11.0
+scikit-image>=0.22.0
+pandas>=2.1.0
+
+# Computer Vision
+opencv-python>=4.8.0
+opencv-contrib-python>=4.8.0
+pillow>=10.0.0
+
+# Deep Learning & Object Detection
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+ultralytics>=8.0.200
+
+# OCR
+easyocr>=1.7.0
+
+# Web Framework
+Flask>=3.0.0
+Flask-CORS>=4.0.0
+Werkzeug>=3.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+requests>=2.31.0
+pyyaml>=6.0
+tqdm>=4.66.0
+matplotlib>=3.8.0
+
+# Data Processing
+pandas>=2.0.0
+scikit-image>=0.21.0
+
+# Utilities
+Pillow>=10.0.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Optimization
+scipy>=1.10.0
+
+# Optional: GPU support (uncomment if using CUDA)
+# torch-cuda support is included with torch installation
+# For CUDA 11.8: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# Development Dependencies (optional)
+# pytest>=7.4.0
+# black>=23.0.0
+# flake8>=6.0.0
+# mypy>=1.0.0

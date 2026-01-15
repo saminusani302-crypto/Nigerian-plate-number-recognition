@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  alpr:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nigerian-alpr
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./logs:/app/logs
+      - ./dataset:/app/dataset
+      - ./models:/app/models
+      - ./static:/app/static
+    environment:
+      - PYTHONUNBUFFERED=1
+      - FLASK_ENV=production
+      - CUDA_VISIBLE_DEVICES=0
+    restart: unless-stopped
+    networks:
+      - alpr-network
+
+networks:
+  alpr-network:
+    driver: bridge
+      context: .
+      dockerfile: Dockerfile
+    container_name: nigerian-alpr
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./logs:/app/logs
+      - ./models:/app/models
+      - ./dataset:/app/dataset
+    environment:
+      FLASK_ENV: production
+      FLASK_HOST: 0.0.0.0
+      FLASK_PORT: 5000
+      DEVICE: cpu  # Change to 'cuda' for GPU
+      LOG_DIR: /app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Uncomment for GPU support
+  # alpr-gpu:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.gpu
+  #   container_name: nigerian-alpr-gpu
+  #   runtime: nvidia
+  #   ports:
+  #     - "5000:5000"
+  #   volumes:
+  #     - ./logs:/app/logs
+  #     - ./models:/app/models
+  #     - ./dataset:/app/dataset
+  #   environment:
+  #     FLASK_ENV: production
+  #     DEVICE: cuda
+  #   restart: unless-stopped
