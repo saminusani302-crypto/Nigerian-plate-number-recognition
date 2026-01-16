@@ -1,7 +1,3 @@
-"""
-Main ALPR Pipeline
-Integrates all components: detection, preprocessing, OCR, and logging.
-"""
 
 import cv2
 import numpy as np
@@ -14,6 +10,12 @@ from .detector import ALPRDetector
 from .ocr import PlateOCR
 from .preprocessor import FramePreprocessor
 from .logger import ALPRLogger
+
+try:
+    from .detector_enhancement import enhance_detector_with_fallback
+    ENHANCED_DETECTION_AVAILABLE = True
+except ImportError:
+    ENHANCED_DETECTION_AVAILABLE = False
 
 
 class ALPRPipeline:
@@ -85,6 +87,17 @@ class ALPRPipeline:
             # Combine detections
             all_plates = plates + plates_orig
             all_plates = self._deduplicate_detections(all_plates)
+            
+            # Step 3b: Use enhanced detection as fallback if no plates found
+            if (not all_plates or len(all_plates) == 0) and ENHANCED_DETECTION_AVAILABLE:
+                print("[DEBUG] No plates found by standard detection, trying enhanced methods...")
+                try:
+                    enhanced_plates = enhance_detector_with_fallback(self.detector, frame)
+                    if enhanced_plates:
+                        all_plates = enhanced_plates
+                        print(f"[DEBUG] Enhanced detection found {len(enhanced_plates)} plate(s)")
+                except Exception as e:
+                    print(f"[DEBUG] Enhanced detection error: {e}")
             
             results['detections'] = {
                 'vehicles': len(vehicles) + len(vehicles_orig),

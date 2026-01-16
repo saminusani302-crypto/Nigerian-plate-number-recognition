@@ -1,7 +1,3 @@
-"""
-Optical Character Recognition Module for License Plates
-Uses EasyOCR to extract text from Nigerian license plates.
-"""
 
 import cv2
 import numpy as np

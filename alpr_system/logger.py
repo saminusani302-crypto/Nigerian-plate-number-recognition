@@ -1,7 +1,3 @@
-"""
-Logging Module for License Plate Recognition
-Saves recognized plate numbers with timestamps to CSV and optionally database.
-"""
 
 import csv
 import json

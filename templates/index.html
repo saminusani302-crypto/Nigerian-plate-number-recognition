@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nigerian Automatic License Plate Recognition System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .card h2 {
+            color: #667eea;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #764ba2;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #63408b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+        }
+
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ee5a52;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-success {
+            background: #51cf66;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #40c057;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(81, 207, 102, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .preview-box {
+            background: black;
+            border-radius: 5px;
+            overflow: hidden;
+            max-width: 100%;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-box img,
+        .preview-box video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            text-align: center;
+        }
+
+        .stat-item .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-item .label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .plates-list {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .plate-item {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .plate-item:last-child {
+            border-bottom: none;
+        }
+
+        .plate-number {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+            font-family: 'Courier New', monospace;
+        }
+
+        .plate-time {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+
+        .status.ok {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader.active {
+            display: inline-block;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            color: #666;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 1024px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .spinner {
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+
+        .error-message {
+            color: #721c24;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .success-message {
+            color: #155724;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 Nigerian ALPR System</h1>
+            <p>Automatic License Plate Recognition using YOLOv8 & EasyOCR</p>
+        </header>
+
+        <main>
+            <!-- Image Processing Card -->
+            <div class="card">
+                <h2>📷 Image Processing</h2>
+                <input type="file" id="imageInput" accept="image/*">
+                <button class="btn-primary" onclick="processImage()">
+                    Process Image
+                    <span class="loader" id="imageLoader"></span>
+                </button>
+                <div id="imageStatus" class="status" style="display:none;"></div>
+                <div class="preview-box">
+                    <img id="imagePreview" style="display:none;" alt="Preview">
+                </div>
+            </div>
+
+            <!-- Video Processing Card -->
+            <div class="card">
+                <h2>🎥 Video Processing</h2>
+                <input type="file" id="videoInput" accept="video/*">
+                <button class="btn-primary" onclick="processVideo()">
+                    Process Video
+                    <span class="loader" id="videoLoader"></span>
+                </button>
+                <div id="videoStatus" class="status" style="display:none;"></div>
+            </div>
+
+            <!-- Webcam Card -->
+            <div class="card">
+                <h2>📹 Webcam Streaming</h2>
+                <div class="button-group">
+                    <button class="btn-success" id="startWebcamBtn" onclick="startWebcam()">Start Webcam</button>
+                    <button class="btn-danger" id="stopWebcamBtn" onclick="stopWebcam()" disabled>Stop Webcam</button>
+                </div>
+                <div id="webcamStatus" class="status info" style="display:none;">
+                    <span id="webcamStatusText"></span>
+                </div>
+                <div class="preview-box">
+                    <img id="webcamPreview" style="display:none;" alt="Webcam Feed">
+                </div>
+            </div>
+
+            <!-- Statistics Card -->
+            <div class="card">
+                <h2>📊 Statistics</h2>
+                <div id="statsContainer" class="stats-grid">
+                    <div class="stat-item">
+                        <div class="value" id="totalFrames">0</div>
+                        <div class="label">Frames Processed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="value" id="totalDetections">0</div>
+                        <div class="label">Plates Detected</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="value" id="uniquePlates">0</div>
+                        <div class="label">Unique Plates</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="value" id="avgConfidence">0%</div>
+                        <div class="label">Avg Confidence</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Card -->
+            <div class="card">
+                <h2>📝 Recognized Plates</h2>
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="refreshLogs()">Refresh Logs</button>
+                    <button class="btn-primary" onclick="exportLogs('csv')">Export CSV</button>
+                    <button class="btn-primary" onclick="exportLogs('json')">Export JSON</button>
+                    <button class="btn-danger" onclick="clearLogs()">Clear Logs</button>
+                </div>
+                <div class="plates-list" id="platesList">
+                    <div style="padding: 15px; text-align: center; color: #999;">
+                        No plates detected yet
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Status Card -->
+            <div class="card">
+                <h2>⚙️ System Status</h2>
+                <div id="systemStatus" class="status info" style="display:none;"></div>
+                <button class="btn-primary" onclick="checkSystemStatus()">Check Status</button>
+                <div id="detailedStatus" style="margin-top: 15px; font-size: 0.9em;">
+                    <p>System Status: <span id="statusIndicator" style="color: #999;">Initializing...</span></p>
+                </div>
+            </div>
+
+            <!-- Logs Details Card -->
+            <div class="card">
+                <h2>🗂️ Logs Details</h2>
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('allLogs')">All Logs</div>
+                    <div class="tab" onclick="switchTab('validLogs')">Valid Plates</div>
+                </div>
+                <div id="allLogs" class="tab-content active" style="max-height: 400px; overflow-y: auto;">
+                    <table id="allLogsTable" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f0f0f0;">
+                                <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Time</th>
+                                <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Plate</th>
+                                <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="validLogs" class="tab-content" style="max-height: 400px; overflow-y: auto;">
+                    <table id="validLogsTable" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f0f0f0;">
+                                <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Time</th>
+                                <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Plate</th>
+                                <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let webcamStreamingActive = false;
+        let webcamStreamInterval = null;
+
+        // Process Image
+        async function processImage() {
+            const input = document.getElementById('imageInput');
+            if (!input.files.length) {
+                showStatus('imageStatus', 'Please select an image', 'error');
+                return;
+            }
+
+            const loader = document.getElementById('imageLoader');
+            loader.classList.add('active');
+
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            try {
+                const response = await fetch('/api/process-image', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    showStatus('imageStatus', `Detected ${data.detections.plates} plate(s)`, 'ok');
+                    
+                    if (data.visualization) {
+                        const img = document.getElementById('imagePreview');
+                        img.src = 'data:image/jpeg;base64,' + data.visualization;
+                        img.style.display = 'block';
+                    }
+
+                    refreshLogs();
+                } else {
+                    showStatus('imageStatus', data.message, 'error');
+                }
+            } catch (error) {
+                showStatus('imageStatus', 'Error: ' + error.message, 'error');
+            } finally {
+                loader.classList.remove('active');
+            }
+        }
+
+        // Process Video
+        async function processVideo() {
+            const input = document.getElementById('videoInput');
+            if (!input.files.length) {
+                showStatus('videoStatus', 'Please select a video', 'error');
+                return;
+            }
+
+            const loader = document.getElementById('videoLoader');
+            loader.classList.add('active');
+
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            try {
+                const response = await fetch('/api/process-video', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    const msg = `Processed ${data.total_frames} frames, detected ${data.unique_plates} unique plates`;
+                    showStatus('videoStatus', msg, 'ok');
+                    refreshLogs();
+                } else {
+                    showStatus('videoStatus', data.message, 'error');
+                }
+            } catch (error) {
+                showStatus('videoStatus', 'Error: ' + error.message, 'error');
+            } finally {
+                loader.classList.remove('active');
+            }
+        }
+
+        // Start Webcam
+        async function startWebcam() {
+            try {
+                const response = await fetch('/api/start-webcam', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    webcamStreamingActive = true;
+                    document.getElementById('startWebcamBtn').disabled = true;
+                    document.getElementById('stopWebcamBtn').disabled = false;
+                    document.getElementById('webcamStatus').style.display = 'block';
+                    document.getElementById('webcamStatusText').innerText = 'Streaming active...';
+                    
+                    webcamStreamInterval = setInterval(updateWebcamStream, 500);
+                } else {
+                    showStatus('webcamStatus', data.message, 'error');
+                }
+            } catch (error) {
+                showStatus('webcamStatus', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        // Stop Webcam
+        async function stopWebcam() {
+            try {
+                const response = await fetch('/api/stop-webcam', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    webcamStreamingActive = false;
+                    document.getElementById('startWebcamBtn').disabled = false;
+                    document.getElementById('stopWebcamBtn').disabled = true;
+                    document.getElementById('webcamStatus').style.display = 'none';
+                    
+                    if (webcamStreamInterval) {
+                        clearInterval(webcamStreamInterval);
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Update Webcam Stream
+        async function updateWebcamStream() {
+            try {
+                const response = await fetch('/api/webcam-stream');
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                if (data.status === 'ok' && data.frame) {
+                    const img = document.getElementById('webcamPreview');
+                    img.src = 'data:image/jpeg;base64,' + data.frame;
+                    img.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error updating webcam:', error);
+            }
+        }
+
+        // Refresh Logs
+        async function refreshLogs() {
+            try {
+                const response = await fetch('/api/logs?format=all');
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    updatePlatesList(data.logs);
+                    updateStatsTable('allLogsTable', data.logs);
+                }
+
+                const validResponse = await fetch('/api/logs?format=valid');
+                const validData = await validResponse.json();
+                if (validData.status === 'ok') {
+                    updateStatsTable('validLogsTable', validData.logs);
+                }
+            } catch (error) {
+                console.error('Error refreshing logs:', error);
+            }
+        }
+
+        // Update Plates List
+        function updatePlatesList(logs) {
+            const list = document.getElementById('platesList');
+            
+            if (!logs || logs.length === 0) {
+                list.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">No plates detected yet</div>';
+                return;
+            }
+
+            const recentLogs = logs.slice(-10).reverse();
+            let html = '';
+
+            for (const log of recentLogs) {
+                const time = new Date(log.timestamp).toLocaleTimeString();
+                const plate = log.formatted_plate || log.plate_number;
+                
+                html += `
+                    <div class="plate-item">
+                        <div>
+                            <div class="plate-number">${plate}</div>
+                            <div class="plate-time">${time}</div>
+                        </div>
+                        <div style="color: #667eea; font-weight: bold;">${(log.confidence * 100).toFixed(0)}%</div>
+                    </div>
+                `;
+            }
+
+            list.innerHTML = html;
+        }
+
+        // Update Stats Table
+        function updateStatsTable(tableId, logs) {
+            const tbody = document.querySelector(`#${tableId} tbody`);
+            tbody.innerHTML = '';
+
+            for (const log of logs) {
+                const time = new Date(log.timestamp).toLocaleTimeString();
+                const plate = log.formatted_plate || log.plate_number;
+                
+                const row = `
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 8px;">${time}</td>
+                        <td style="padding: 8px; font-weight: bold; color: #667eea;">${plate}</td>
+                        <td style="padding: 8px;">${(log.confidence * 100).toFixed(0)}%</td>
+                    </tr>
+                `;
+                
+                tbody.innerHTML += row;
+            }
+        }
+
+        // Check System Status
+        async function checkSystemStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    document.getElementById('statusIndicator').innerText = '✓ Online';
+                    document.getElementById('statusIndicator').style.color = '#28a745';
+                    updateStats(data.logger_stats);
+                } else {
+                    document.getElementById('statusIndicator').innerText = '✗ Offline';
+                    document.getElementById('statusIndicator').style.color = '#dc3545';
+                }
+            } catch (error) {
+                document.getElementById('statusIndicator').innerText = '✗ Error';
+                document.getElementById('statusIndicator').style.color = '#dc3545';
+            }
+        }
+
+        // Update Statistics
+        function updateStats(stats) {
+            document.getElementById('totalDetections').innerText = stats.valid_plates || 0;
+            document.getElementById('uniquePlates').innerText = stats.unique_plates || 0;
+            
+            if (stats.average_confidence) {
+                document.getElementById('avgConfidence').innerText = (stats.average_confidence * 100).toFixed(0) + '%';
+            }
+        }
+
+        // Export Logs
+        async function exportLogs(format) {
+            try {
+                const response = await fetch(`/api/logs/export?format=${format}`);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `plates_${new Date().toISOString().split('T')[0]}.${format}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                }
+            } catch (error) {
+                console.error('Error exporting:', error);
+            }
+        }
+
+        // Clear Logs
+        async function clearLogs() {
+            if (confirm('Are you sure you want to clear all logs?')) {
+                try {
+                    const response = await fetch('/api/logs/clear', { method: 'POST' });
+                    const data = await response.json();
+                    
+                    if (data.status === 'ok') {
+                        refreshLogs();
+                    }
+                } catch (error) {
+                    console.error('Error clearing logs:', error);
+                }
+            }
+        }
+
+        // Show Status
+        function showStatus(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.className = `status ${type}`;
+            el.innerText = message;
+            el.style.display = 'block';
+        }
+
+        // Switch Tab
+        function switchTab(tabName) {
+            const contents = document.querySelectorAll('.tab-content');
+            const tabs = document.querySelectorAll('.tab');
+            
+            contents.forEach(c => c.classList.remove('active'));
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSystemStatus();
+            refreshLogs();
+            
+            // Refresh stats every 10 seconds
+            setInterval(checkSystemStatus, 10000);
+        });
+
+        // Image preview
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = document.getElementById('imagePreview');
+                img.src = event.target.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        });
+    </script>
+</body>
+</html>

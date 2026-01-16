@@ -22,10 +22,13 @@ ultralytics>=8.0.200
 # OCR
 easyocr>=1.7.0
 
-# Web Framework
+# Web Frameworks
 Flask>=3.0.0
 Flask-CORS>=4.0.0
 Werkzeug>=3.0.0
+streamlit>=1.28.0
+streamlit-webrtc>=0.47.0
+streamlit-option-menu>=0.3.6
 
 # Utilities
 python-dotenv>=1.0.0
@@ -34,17 +37,17 @@ pyyaml>=6.0
 tqdm>=4.66.0
 matplotlib>=3.8.0
 
-# Data Processing
+# Data Processing & Visualization
 pandas>=2.0.0
 scikit-image>=0.21.0
-
-# Utilities
-Pillow>=10.0.0
-requests>=2.31.0
-python-dotenv>=1.0.0
+plotly>=5.17.0
+altair>=5.0.0
 
 # Optimization
 scipy>=1.10.0
+
+# Additional UI Libraries
+pillow>=10.0.0
 
 # Optional: GPU support (uncomment if using CUDA)
 # torch-cuda support is included with torch installation

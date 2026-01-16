@@ -1,7 +1,3 @@
-"""
-Vehicle and License Plate Detection Module using YOLOv8
-Handles object detection for vehicles and Nigerian license plates.
-"""
 
 import cv2
 import numpy as np
@@ -95,6 +91,7 @@ class ALPRDetector:
                                      vehicle_conf: float = 0.5) -> Tuple[List[Dict], List[Dict]]:
         """
         Detect vehicles and license plates from frame.
+        Uses YOLOv8 detection and falls back to heuristic methods if no plates found.
         
         Args:
             frame: Input frame
@@ -109,11 +106,117 @@ class ALPRDetector:
         vehicles = self.filter_detections_by_class(all_detections, ['car', 'vehicle', 'truck', 'bus', 'motorcycle', 'bicycle'])
         plates = self.filter_detections_by_class(all_detections, ['license_plate', 'plate', 'number_plate'])
         
-        # If no specific plate detections, look for anything other than person/background
-        if not plates:
-            plates = self.filter_detections_by_class(all_detections, ['license plate'])
+        # If no specific plate detections, try fallback methods
+        if not plates and vehicles:
+            # Use heuristic detection for plates within vehicle regions
+            plates = self._detect_plates_heuristic(frame, vehicles)
         
         return vehicles, plates
+    
+    def _detect_plates_heuristic(self, frame: np.ndarray, 
+                                 vehicle_detections: List[Dict]) -> List[Dict]:
+        """
+        Detect license plates using heuristic methods within vehicle regions.
+        Uses edge detection and contour analysis to find rectangular plate regions.
+        
+        Args:
+            frame: Input frame
+            vehicle_detections: List of vehicle detections
+            
+        Returns:
+            List of potential license plate detections
+        """
+        plates = []
+        h, w = frame.shape[:2]
+        
+        for vehicle in vehicle_detections:
+            box = vehicle['box']
+            x1, y1, x2, y2 = int(box[0]), int(box[1]), int(box[2]), int(box[3])
+            
+            # Ensure box is within frame
+            x1 = max(0, x1)
+            y1 = max(0, y1)
+            x2 = min(w, x2)
+            y2 = min(h, y2)
+            
+            # Extract vehicle region
+            vehicle_roi = frame[y1:y2, x1:x2]
+            
+            if vehicle_roi.size == 0:
+                continue
+            
+            # Look for rectangular regions that match license plate characteristics
+            candidate_plates = self._find_plate_candidates(vehicle_roi)
+            
+            # Adjust coordinates to frame reference
+            for candidate in candidate_plates:
+                candidate['box'] = [
+                    candidate['box'][0] + x1,
+                    candidate['box'][1] + y1,
+                    candidate['box'][2] + x1,
+                    candidate['box'][3] + y1
+                ]
+                plates.append(candidate)
+        
+        return plates
+    
+    def _find_plate_candidates(self, roi: np.ndarray, 
+                              min_area: float = 500, 
+                              max_area: float = None) -> List[Dict]:
+        """
+        Find license plate candidates using edge detection and contour analysis.
+        
+        Args:
+            roi: Region of interest (vehicle region)
+            min_area: Minimum contour area
+            max_area: Maximum contour area (calculated if None)
+            
+        Returns:
+            List of candidate plate detections
+        """
+        candidates = []
+        h, w = roi.shape[:2]
+        
+        if max_area is None:
+            max_area = (h * w) * 0.5  # Max 50% of ROI area
+        
+        # Convert to grayscale
+        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+        
+        # Apply edge detection
+        edges = cv2.Canny(gray, 100, 200)
+        
+        # Apply morphological operations
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+        edges = cv2.morphologyEx(edges, cv2.MORPH_OPEN, kernel)
+        
+        # Find contours
+        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            
+            # Filter by area
+            if area < min_area or area > max_area:
+                continue
+            
+            # Get bounding rectangle
+            x, y, cw, ch = cv2.boundingRect(contour)
+            
+            # Check aspect ratio (license plates are wider than tall)
+            aspect_ratio = cw / (ch + 1e-5)
+            
+            # Nigerian license plates are typically 3:1 or 4:1 aspect ratio
+            if 2.0 <= aspect_ratio <= 5.0:
+                candidates.append({
+                    'box': [x, y, x + cw, y + ch],
+                    'confidence': 0.6,  # Heuristic confidence
+                    'class': -1,  # Special marker for heuristic detection
+                    'class_name': 'license_plate_heuristic'
+                })
+        
+        return candidates
     
     def extract_plate_regions(self, frame: np.ndarray, 
                             plate_detections: List[Dict]) -> List[Dict]:
@@ -181,7 +284,6 @@ class ALPRDetector:
         return {
             'model_type': self.model.task,
             'device': self.device,
-            'input_size': self.model.imgsz,
             'class_names': self.model.names
         }
     
